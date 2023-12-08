@@ -21,7 +21,17 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Button.py" />
     <Compile Include="Zmeyka.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="sounds\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="sounds\eat.wav" />
+    <Content Include="sounds\fon.mp3" />
+    <Content Include="sounds\fon2.mp3" />
+    <Content Include="sounds\gameover.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

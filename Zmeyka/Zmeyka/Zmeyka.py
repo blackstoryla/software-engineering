@@ -3,13 +3,30 @@ import pygame
 import time
 import random
 
+from Button import Button
+
+pygame.mixer.pre_init(44100, -16, 1, 512)
+
 pygame.init()
+
+pygame.mixer.music.load('sounds/fon.mp3')
+pygame.mixer.music.play(-1)
+eat_sound = pygame.mixer.Sound('sounds/eat.wav')
+gameover_sound = pygame.mixer.Sound('sounds/gameover.wav')
+
+game = True
+
 white = (255, 255, 255)
 yellow = (255, 255, 102)
+orange = (255, 185, 77)
 black = (0, 0, 0)
-red = (213, 50, 80)
+red = (255, 0, 0)
+red2 = (163, 0, 0)
 green = (0, 255, 0)
+green1 = (30, 166, 10)
 blue = (50, 153, 213)
+blue1 = (49, 255, 235)
+blue2 = (15, 0, 255)
 dis_width = 800
 dis_height = 600
 dis = pygame.display.set_mode((dis_width, dis_height))
@@ -17,7 +34,9 @@ pygame.display.set_caption('Змейка')
 clock = pygame.time.Clock()
 snake_block = 10
 snake_speed = 10
-font_style = pygame.font.SysFont("bahnschrift", 25)
+font_style = pygame.font.SysFont("bahnschrift", 70)
+font_style1 = pygame.font.SysFont("bahnschrift", 30)
+button_style = pygame.font.SysFont("bahnschrift", 25)
 score_font = pygame.font.SysFont("comicsansms", 35)
 
 count_food = 200
@@ -63,8 +82,8 @@ class My_Snake:
     
    def snake_draw(self, snake_block):
       for x in self.snake_List:
-         pygame.draw.rect(dis, black, [x[0], x[1], snake_block, snake_block])
-      pygame.draw.rect(dis, yellow, [x[0], x[1], snake_block, snake_block])
+         pygame.draw.rect(dis, blue2, [x[0], x[1], snake_block, snake_block])
+      pygame.draw.rect(dis, black, [x[0], x[1], snake_block, snake_block])
 
 
 class Bot_Snake:
@@ -83,10 +102,10 @@ class Bot_Snake:
    def bot_snake_draw(self, snake_block):
       for x in self.b_snake_list:
          pygame.draw.rect(dis, red, [x[0], x[1], snake_block, snake_block])
+      pygame.draw.rect(dis, red2, [x[0], x[1], snake_block, snake_block])
        
    def bot_go(self):
        self.len_way = self.len_way - 1
-       #print(self.len_way)
 
        if self.len_way <= 0:
            self.n_way = (self.n_way + 1) % len(way)
@@ -107,18 +126,19 @@ class Bot_Snake:
           self.b_x1_change = 0
           self.b_y1_change = snake_block
 
-def message(msg, color):
-   mesg = font_style.render(msg, True, color)
-   dis.blit(mesg, [dis_width/50, dis_height/3])
+def message(msg, color, f_style, width, height):
+   mesg = f_style.render(msg, True, color)
+   dis.blit(mesg, [width, height])
    
 def Score(score):
     value = score_font.render("Ваш счёт: " + str(score), True, yellow)
     dis.blit(value, [0, 0])
 
 def gameLoop():
+   pygame.mixer.music.load('sounds/fon2.mp3')
+   pygame.mixer.music.play(-1)
    game_over = False
    game_close = False
-   game_stop = False
    
    Snake = My_Snake()
    
@@ -134,36 +154,12 @@ def gameLoop():
    for x in range(count_bot_snake):
       A = Bot_Snake()
       bot_snake.append(A)
-      
-   while not game_stop:
-      dis.fill(blue)
-      message("Нажмите любую клавишу для начала игры", red)
-      pygame.display.update()
-      for event in pygame.event.get():
-         if event.type == pygame.KEYDOWN:
-            game_stop = True
 
    while not game_over:
       
-      while game_close == True:
-         dis.fill(blue)
-         message("Вы проиграли! Нажмите Q для выхода или C для повторной игры", red)
-         Score(Snake.Length_of_snake - 1)
-         pygame.display.update()
-         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-               game_over = True
-               game_close = False
-            if event.type == pygame.KEYDOWN:
-               if event.key == pygame.K_q:
-                  game_over = True
-                  game_close = False
-               if event.key == pygame.K_c:
-                  gameLoop()
-                  
       for event in pygame.event.get():
          if event.type == pygame.QUIT:
-            game_over = True
+            Exit()
          if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_a:
                Snake.x1_change = -snake_block
@@ -180,9 +176,10 @@ def gameLoop():
                
       if Snake.x1 >= dis_width or Snake.x1 < 0 or Snake.y1 >= dis_height or Snake.y1 < 0:
          game_close = True
+         gameover_sound.play()
       Snake.x1 += Snake.x1_change
       Snake.y1 += Snake.y1_change
-      dis.fill(blue)
+      dis.fill(orange)
       
       for x in range(len(food)):
          pygame.draw.rect(dis, green, [food[x][0], food[x][1], snake_block, snake_block])
@@ -218,6 +215,7 @@ def gameLoop():
          if Snake.x1 == food[x][0] and Snake.y1 == food[x][1]:
             food[x][0] = round(random.randrange(0, dis_width - snake_block) / 10.0) * 10.0
             food[x][1] = round(random.randrange(0, dis_height - snake_block) / 10.0) * 10.0
+            eat_sound.play()
             Snake.Length_of_snake += 1
           
          for i in range(len(bot_snake)):
@@ -243,6 +241,7 @@ def gameLoop():
                       
                    if Snake.x1 == i[0] and Snake.y1 == i[1]:
                       game_close = True
+                      gameover_sound.play()
                       
          for i in Snake.snake_List[:-1]:
             if bot_snake[x].b_x1 == i[0] and bot_snake[x].b_y1 == i[1]:
@@ -259,7 +258,41 @@ def gameLoop():
          food.pop(0)
          
       clock.tick(snake_speed)
+      
+      
+      while game_close == True:
+         pygame.mixer.music.stop()
+         dis.fill(black)
+         message("Game Over", red, font_style, dis_width/4 + 40, dis_height/3)
+         message("Для выхода в меню нажмите любую кнопку", red, font_style1, dis_width/4 - 80, dis_height/3 + 80)
+         Score(Snake.Length_of_snake - 1)
+         pygame.display.update()
+         for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+               game_over = True
+               game_close = False
+               game = False
+               Exit()
+            if event.type == pygame.KEYDOWN:
+               game_over = True
+               game_close = False
+               pygame.mixer.music.load('sounds/fon.mp3')
+               pygame.mixer.music.play(-1)
+
+def Exit():
    pygame.quit()
    quit()
 
-gameLoop()
+
+Start_Button = Button(dis_width / 2 - 200, dis_height / 2 - 120, 400, 100, button_style, 'Начать игру', gameLoop)
+Close_Button = Button(dis_width / 2 - 200, dis_height / 2, 400, 100, button_style, 'Выход', Exit)
+
+while game:
+    dis.fill(green1)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            Exit()
+    Start_Button.process(dis)
+    Close_Button.process(dis)
+    pygame.display.flip()
+    clock.tick(snake_speed)
